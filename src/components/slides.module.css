@@ -1,0 +1,13 @@
+.slideShow {
+    transition-duration: 100ms;
+    width: 100vw;
+    transform-origin: center;
+    -moz-transform-origin: center;
+    -o-transform-origin: center;
+}
+
+.slide {
+    position: absolute;
+    overflow: visible;
+    display: inline-block;
+}
