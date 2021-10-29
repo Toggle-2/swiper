@@ -11,7 +11,6 @@ const useSwipe = () => {
   }>({ x: 0, y: 0 });
   const [swipeLengthX, setSwipeLengthX] = useState<number>(0);
   const [swipeLengthY, setSwipeLengthY] = useState<number>(0);
-  const [swiping, setSwiping] = useState<boolean>(false);
   const [lifecycle, setLifecycle] = useState<"swipeActive" | "swipeMove" | "swipeInactive">("swipeInactive");
   // const [transformX, setTransformX] = useState<number>(0);
   // const [transformY, setTransformY] = useState<number>(0);
@@ -33,19 +32,18 @@ const useSwipe = () => {
       touch.preventDefault();
       setEndPoint({ x: 0, y: 0 });
       setStartPoint({ x: touch.touches[0].screenX, y: touch.touches[0].screenY });
-      setSwiping(true);
     },
-    [swipeLengthX, swiping, startPoint]
+    []
   );
 
   const touchMoveHandler = useCallback(
-     (touch: TouchEvent) => {
-       setLifecycle("swipeMove");
+    (touch: TouchEvent) => {
+      setLifecycle("swipeMove");
       touch.preventDefault();
       touch.stopPropagation();
       setEndPoint({ x: touch.touches[0].screenX, y: touch.touches[0].screenY });
     },
-    [endPoint]
+    []
   );
 
   const touchEndHandler = useCallback(
@@ -53,9 +51,8 @@ const useSwipe = () => {
       setLifecycle("swipeInactive");
       touch.preventDefault();
       touch.stopPropagation();
-      setSwiping(false);
     },
-    [swiping]
+    []
   );
 
   const touchCancel = useCallback(
@@ -63,57 +60,57 @@ const useSwipe = () => {
       setLifecycle("swipeInactive");
       touch.preventDefault();
       touch.stopPropagation();
-      setSwiping(false);
       setStartPoint({ x: 0, y: 0 });
       setEndPoint({ x: 0, y: 0 });
       setSwipeLengthX(0);
       setSwipeLengthY(0);
       // console.log("SWIPER NO SWIPING!");
     },
-    [swiping]
+    []
   );
 
   const mouseDownHandler = useCallback(
     (click: MouseEvent) => {
+      setLifecycle("swipeActive");
       click.preventDefault();
       click.stopPropagation();
       setEndPoint({ x: 0, y: 0 });
       setStartPoint({ x: click.screenX, y: click.screenY });
-      setSwiping(true);
     },
-    [swipeLengthX, swiping, startPoint]
+    []
   );
 
   const mouseMoveHandler = useCallback(
     (click: MouseEvent) => {
+      setLifecycle("swipeMove");
       click.preventDefault();
       click.stopPropagation();
       setEndPoint({ x: click.screenX, y: click.screenY });
     },
-    [endPoint]
+    []
   );
 
   const mouseUpHandler = useCallback(
     (click: MouseEvent) => {
+      setLifecycle("swipeInactive");
       click.preventDefault();
       click.stopPropagation();
-      setSwiping(false);
     },
-    [swiping]
+    []
   );
 
   const mouseCancel = useCallback(
     (click: MouseEvent) => {
+      setLifecycle("swipeInactive");
       click.preventDefault();
       click.stopPropagation();
-      setSwiping(false);
       setStartPoint({ x: 0, y: 0 });
       setEndPoint({ x: 0, y: 0 });
       setSwipeLengthX(0);
       setSwipeLengthY(0);
       // console.log("SWIPER NO SWIPING!");
     },
-    [swiping]
+    []
   );
 
   const mountSwipe = useCallback((el?: string) => {
@@ -137,7 +134,7 @@ const useSwipe = () => {
       document.addEventListener("mouseup", mouseUpHandler, { passive: false });
       document.addEventListener("mouseleave", mouseCancel, { passive: false });
     }
-  }, []);
+  }, [mouseCancel, mouseDownHandler, mouseMoveHandler, mouseUpHandler, touchCancel, touchEndHandler, touchMoveHandler, touchStartHandler]);
 
   const unmountSwipe = useCallback((el?: string) => {
     if (el) {
@@ -159,7 +156,7 @@ const useSwipe = () => {
       document.removeEventListener("mouseup", mouseUpHandler);
       document.removeEventListener("mouseleave", mouseCancel);
     }
-  }, []);
+  }, [mouseCancel, mouseDownHandler, mouseMoveHandler, mouseUpHandler, touchCancel, touchEndHandler, touchMoveHandler, touchStartHandler]);
 
   return {
     swipeStatus: lifecycle,
@@ -167,7 +164,6 @@ const useSwipe = () => {
     unmountSwipe: unmountSwipe, //use for applied component unmounting
     startPoint: startPoint, //can use for desired logic, with x and y property
     endPoint: endPoint, //can use for desired logic, with x and y property
-    swiping: swiping, //simple boolean value
     horizontalSwipe: swipeLengthX, //measure of the distance along x-axis
     verticalSwipe: swipeLengthY, //measure of the distance along y-axis
   };

@@ -1,5 +1,5 @@
 .slideShow {
-    transition-duration: 100ms;
+    /* transition-duration: 500ms; */
     width: 100vw;
     transform-origin: center;
     -moz-transform-origin: center;
@@ -9,5 +9,9 @@
 .slide {
     position: absolute;
     overflow: visible;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw
 }

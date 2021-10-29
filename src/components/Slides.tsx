@@ -26,6 +26,7 @@ interface SlideShowProps {
   mountConditions?: boolean;
   nextHandler?: () => void;
   prevHandler?: () => void;
+  toSlide?: () => number;
 }
 
 const SlideShow: React.FC<SlideShowProps> = (props) => {
@@ -39,73 +40,64 @@ const SlideShow: React.FC<SlideShowProps> = (props) => {
     nextHandler,
     prevHandler,
     element,
+    toSlide,
   } = props;
 
-  //mounts and unmounts swiper
+  //MOUNTS SWIPE
   useEffect(() => {
     if (mountConditions !== false) mountSwipe(element);
     return () => unmountSwipe(element);
-  }, [mountConditions]);
+  }, [mountConditions, mountSwipe, unmountSwipe, element]);
 
+  //ALLOWS US TO MANIPULATE THE SLIDE INDEX FROM THE PARENT COMPONENT
   useEffect(() => {
-    console.log("SLIDE INDEX", activeSlide);
-  }, [activeSlide]);
+    if (toSlide) {
+      const index = toSlide();
+      const newTransform = index * -slideSpacing;
+      setTransformX(newTransform);
+    }
+  }, [toSlide, slideSpacing]);
 
+  //CYCLES THE SLIDES AND APPLIES ANY OPTIONAL FUNCTIONS FROM PROPS
   useEffect(() => {
     if (
-      horizontalSwipe >= 125 &&
+      horizontalSwipe >= slideSpacing * 0.8 &&
       activeSlide !== lastSlideIndex &&
-      transformX >= -slideSpacing * lastSlideIndex
+      swipeStatus === "swipeInactive"
     ) {
-      setActiveSlide(activeSlide + 1);
-      if(nextHandler) nextHandler();
-      // slideForward();
-    } else if (horizontalSwipe <= -125 && activeSlide !== 0) {
-      if (transformX !== 0) {
-        setActiveSlide(activeSlide - 1);
-        if(prevHandler) prevHandler();
-        // slideBack();
-      }
+      setActiveSlide((slide) => slide + 1);
+      if (nextHandler) nextHandler();
+    } else if (
+      horizontalSwipe <= -(slideSpacing * 0.8) &&
+      activeSlide !== 0 &&
+      swipeStatus === "swipeInactive"
+    ) {
+      setActiveSlide((slide) => slide - 1);
+      if (prevHandler) prevHandler();
     }
-  }, [horizontalSwipe]);
+  }, [
+    swipeStatus,
+    horizontalSwipe,
+    lastSlideIndex,
+    nextHandler,
+    prevHandler,
+    slideSpacing 
+    /*activeSlide will create a feedback loop wherein all slides get cycled*/,
+  ]);
 
-  //handles lifecycle of a swipe event
+  //ALTERS THE TRANSFORM FOR THE SLIDE SHOW
   useEffect(() => {
-    switch (swipeStatus) {
-      case "swipeInactive":
-
-        const endingValue =
-          Math.round(horizontalSwipe / slideSpacing) * slideSpacing * -1;
-        const slideCap = lastSlideIndex * -slideSpacing;
-        if (endingValue > 0) {
-          setTransformX(0);
-        } else if (endingValue < slideCap) {
-          setTransformX(slideCap);
-        } else setTransformX(endingValue);
-        console.log("ENDING_VALUE", endingValue, slideCap);
-
-        break;
-
-      case "swipeActive":
-        
-        break;
-
-      case "swipeMove":
-
-        // const distance = horizontalSwipe - transformX;
-        setTransformX(-horizontalSwipe);
-
-        break;
-      default:
-        break;
-    }
-    console.log("[SWIPE EFFECT FIRED]", horizontalSwipe);
-  }, [horizontalSwipe, swipeStatus]);
+    const newTransform = activeSlide * -slideSpacing;
+    if (swipeStatus === "swipeInactive") setTransformX(newTransform);
+  }, [activeSlide, slideSpacing, swipeStatus]);
 
   return (
     <div
       className={classes.slideShow}
-      style={{ transform: `translateX(${transformX}vw)` }}
+      style={{
+        transform: `translateX(${transformX}vw)`,
+        transitionDuration: swipeStatus === "swipeActive" ? "" : "500ms",
+      }}
       id={element}
     >
       {props.children}
